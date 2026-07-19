@@ -87,27 +87,6 @@ while still allowing the user to review drafts before sending, making it suitabl
 
 ---
 
-# 📁 Repository Structure
-
-```text
-n8n-email-ai-assistant/
-│
-├── README.md
-├── workflow.json
-├── LICENSE
-├── .gitignore
-│
-├── images/
-│   └── workflow.png
-│
-└── sample-data/
-    ├── sample-email.json
-    ├── sample-sheet.csv
-    └── sample-ai-response.json
-```
-
----
-
 # 🔑 Prerequisites
 
 Before importing the workflow, configure your own credentials:
