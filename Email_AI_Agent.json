@@ -1,0 +1,448 @@
+{
+  "name": "Email AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        60
+      ],
+      "id": "f12bdbec-4762-4b9e-8074-eb86285be943",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ULiAhVIv5rMVQMEL",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2aad7fa2-8997-4946-965d-461404c5d83a",
+              "name": "Email Context",
+              "value": "=Sender Email Address:\n{{ $json.from.value[0].address }}\n\nEmail Subject:\n{{ $json.subject }}\n\nEmail Body:\n{{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        100,
+        60
+      ],
+      "id": "7b351890-cf8e-414e-a484-68d56be877b0",
+      "name": "Email Context"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Your role is to determine if an email is related to a sponsorship deal or not.\n\nRespond with a JSON object with the following fields:\n\n- isSponsorship: which can be either true or false.\n- reasoning: explain your answer.\n- lead_name: the name of the person as per the email body, leave blank if not a sponsor email.\n- lead_company: the company wanting to sponsor, leave blank if not a sponsor email.\n\nThink carefully about your answer.\n{{ $json['Email Context'] }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        280,
+        60
+      ],
+      "id": "fa9d6664-fa49-4aae-896b-c61e7d8223a3",
+      "name": "Classify Email"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fdd9fb57-5eb6-43eb-8cff-5a60a4d25609",
+              "leftValue": "={{ $json.output.isSponsorship }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        620,
+        120
+      ],
+      "id": "921d3bb1-4ee1-4aa4-8c29-06ab9a0aab54",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        860,
+        220
+      ],
+      "id": "9ed222ea-de93-472e-9a31-9b335bc37254",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You work for a Youtube channel called Eddy Tools Tech Solutions.\nYour role is to respond to sponsorship opportunities by drafting a response email.\nCarefully have a look at the below email context and write a friendly and professional email.\nOnly return the body of the email in HTML format. Do not write a header, only the body!\nDo not include things like ''''html.\nThe email should include information about sponsorship rates and the terms and conditions.\n# Sponsorship Terms for leonvanzyl YouTube Channel\n## Channel Overview\n-Channel Name: Eddy Tools Tech Solutions\n-Subscribers: 26,000+\n-Average Views: 2,000 20,000 per video -\n-Content: Programming education\n## Sponsorship Rates\n-Dedicated Video: $500 - $1,500\n- Integrated Sponsorship (30-60 second segment):\n$200\n-$600\n*Note: Rates may vary based on specific requirements and current channel metrics.*\n## Terms and Conditions\n### 1. Creative Control\nAll video content, including script, visuals, and editing, will be created solely by Eddy Tools Tech Solutions. The final video will align with the channel's established style and tone.\n### 2. Approval Process\nSponsor will receive one draft of the sponsored content segment for factual accuracy review only. No stylistic changes will be made unless they correct factual errors about the product or service.\n### 3. Title and Thumbnail\nVideo title and thumbnail will be created by Eddy Tools Tech Solutions to maintain consistency with channel branding. Sponsor's name or logo may be included if it aligns with the channel's usual style.\n### 4. Revisions\nNo revisions will be made to the final video unless to correct factual errors about the sponsor's product or service. Minor text overlaystor lower-third corrections may be considered if they don't impact the overall video style.\n### 5. Distribution\nThe video will be published on the Eddy Tools Tech Solutions YouTube channel and remain there indefinitely. Sponsor may share or embed the video but may not re-upload or edit it without written permission.\n### 6. Performance\nWhile we strive for high engagement, we cannot guarantee specific view counts, likes, or conversion rates.\n### 7. Disclosure\nSponsorship will be clearly disclosed in the video and description in compliance with FTC guidelines.\n## Our Commitment to Quality\nAt Eddy Tools Tech Solutions, we believe in maintaining the integrity of our content and the trust of our audience. Our approach to sponsored content ensures that:\n1. The sponsor's message is delivered authentically and effectively.\n2. The content remains valuable and engaging for our audience.\n3. The sponsored video aligns with our channel's established style and quality standards.\nWe're committed to working closely with sponsors to understand their product and message, ensuring the best possible representation within our creative framework.",
+              "role": "system"
+            },
+            {
+              "content": "=EMAIL CONTEXT:\n {{ $('Email Context').item.json['Email Context'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1020,
+        -20
+      ],
+      "id": "11b0dbf8-80d8-4bd4-bccd-3c8507b84785",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "1VMKjiSJqADW5yc4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MjOv3aZdBtX2QJQZH54PO76pjPk776Ce90jD1IHAuE0",
+          "mode": "list",
+          "cachedResultName": "Leads Qualification",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MjOv3aZdBtX2QJQZH54PO76pjPk776Ce90jD1IHAuE0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 916141413,
+          "mode": "list",
+          "cachedResultName": "Sponsors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MjOv3aZdBtX2QJQZH54PO76pjPk776Ce90jD1IHAuE0/edit#gid=916141413"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ $('Gmail Trigger').item.json.from.value[0].address }}",
+            "Reasoning": "={{ $json.output.reasoning }}",
+            "Name": "={{ $json.output.lead_name }}",
+            "Company": "={{ $json.output.lead_company }}"
+          },
+          "matchingColumns": [
+            "Name"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reasoning",
+              "displayName": "Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        860,
+        -40
+      ],
+      "id": "f9a91dce-32d1-4aed-976b-c362a3c11b67",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jZnh1sek0aDJgXgc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"isSponsorship\": {\n\t\t\t\"type\": \"boolean\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\"\t\n        },\n      \"lead_name\":{\n        \"type\":\"string\"\n      },\n      \"lead_company\":{\n        \"type\":\"string\"\n      }\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        460,
+        280
+      ],
+      "id": "ed9a91a0-716c-4f9f-90b2-fe3a56f249aa",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.headers.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.message.content }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.threadId }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1340,
+        -20
+      ],
+      "id": "d2d44e29-082a-4ad9-8a05-16b560221889",
+      "name": "Gmail",
+      "webhookId": "050d6779-ed60-4452-94d5-ba33ab494481",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ULiAhVIv5rMVQMEL",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## AI-Driven Email Assistant: Auto-extract, Structure in Google Sheets, and Draft owner-reviewed replies via LLMs upon new emails. \n",
+        "height": 80,
+        "width": 1500
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -60,
+        -180
+      ],
+      "typeVersion": 1,
+      "id": "49f6ecc8-d683-4323-af3c-d59dd0e5aedc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        300,
+        280
+      ],
+      "id": "d8112ba5-a715-4b86-95ac-74fc560da110",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "1VMKjiSJqADW5yc4",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Email Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Context": {
+      "main": [
+        [
+          {
+            "node": "Classify Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Email": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classify Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c07da8fc-ec1b-44a7-93fc-317c93767927",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f21aaf8491157c44331f10f943768229b6695aa90fd86fc40ddb60f0a283c31"
+  },
+  "id": "JlL1eN7pZ0og4RNL",
+  "tags": [
+    {
+      "createdAt": "2025-06-05T06:58:59.412Z",
+      "updatedAt": "2025-06-05T06:58:59.412Z",
+      "id": "Ba1Vyb7BJb8L5WK7",
+      "name": "ET"
+    },
+    {
+      "createdAt": "2025-06-05T06:58:59.444Z",
+      "updatedAt": "2025-06-05T06:58:59.444Z",
+      "id": "IkoJWBxO2KOLpNNX",
+      "name": "From POC sheet"
+    },
+    {
+      "createdAt": "2025-10-27T08:56:35.862Z",
+      "updatedAt": "2025-10-27T08:56:35.862Z",
+      "id": "4VGoJKQCTJHU7PTY",
+      "name": "viraj-n8n"
+    }
+  ]
+}
