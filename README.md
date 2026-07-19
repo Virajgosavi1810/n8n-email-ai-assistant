@@ -1,4 +1,3 @@
-
 # 📧 AI Email Assistant using n8n, Gmail, Google Sheets & OpenAI
 
 ![n8n](https://img.shields.io/badge/n8n-Automation-FF6D5A?style=for-the-badge)
@@ -838,5 +837,10 @@ Potential improvements for future versions:
 * Store email attachments in Google Drive
 * Add analytics dashboard for processed emails
 * Implement follow-up reminders for unanswered leads
+
+---
+# ⭐ Support
+
+If you found this project useful, consider giving it a **⭐ Star** on GitHub!
 
 ---
